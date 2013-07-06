@@ -1,6 +1,4 @@
-this.recline = this.recline || {};
-this.recline.Backend = this.recline.Backend || {};
-this.recline.Backend.CSV = this.recline.Backend.CSV || {};
+var CSV = {};
 
 // Note that provision of jQuery is optional (it is **only** needed if you use fetch on a remote file)
 (function(my) {
@@ -10,30 +8,13 @@ this.recline.Backend.CSV = this.recline.Backend.CSV || {};
   // use either jQuery or Underscore Deferred depending on what is available
   var Deferred = (typeof jQuery !== "undefined" && jQuery.Deferred) || _.Deferred;
 
-  // ## fetch
-  //
-  // fetch supports 3 options depending on the attribute provided on the dataset argument
-  //
-  // 1. `dataset.file`: `file` is an HTML5 file object. This is opened and parsed with the CSV parser.
-  // 2. `dataset.data`: `data` is a string in CSV format. This is passed directly to the CSV parser
-  // 3. `dataset.url`: a url to an online CSV file that is ajax accessible (note this usually requires either local or on a server that is CORS enabled). The file is then loaded using jQuery.ajax and parsed using the CSV parser (NB: this requires jQuery)
-  //
-  // All options generates similar data and use the memory store outcome, that is they return something like:
-  //
-  // <pre>
-  // {
-  //   records: [ [...], [...], ... ],
-  //   metadata: { may be some metadata e.g. file name }
-  //   useMemoryStore: true
-  // }
-  // </pre>
   my.fetch = function(dataset) {
     var dfd = new Deferred();
     if (dataset.file) {
       var reader = new FileReader();
       var encoding = dataset.encoding || 'UTF-8';
       reader.onload = function(e) {
-        var out = my.extractFields(my.parseCSV(e.target.result, dataset), dataset);
+        var out = my.extractFields(my.parse(e.target.result, dataset), dataset);
         out.useMemoryStore = true;
         out.metadata = {
           filename: dataset.file.name
@@ -45,12 +26,12 @@ this.recline.Backend.CSV = this.recline.Backend.CSV || {};
       };
       reader.readAsText(dataset.file, encoding);
     } else if (dataset.data) {
-      var out = my.extractFields(my.parseCSV(dataset.data, dataset), dataset);
+      var out = my.extractFields(my.parse(dataset.data, dataset), dataset);
       out.useMemoryStore = true;
       dfd.resolve(out);
     } else if (dataset.url) {
       jQuery.get(dataset.url).done(function(data) {
-        var out = my.extractFields(my.parseCSV(data, dataset), dataset);
+        var out = my.extractFields(my.parse(data, dataset), dataset);
         out.useMemoryStore = true;
         dfd.resolve(out);
       });
@@ -73,31 +54,13 @@ this.recline.Backend.CSV = this.recline.Backend.CSV || {};
     }
   };
 
-  // ## parseCSV
+  // ## parse
   //
-  // Converts a Comma Separated Values string into an array of arrays.
-  // Each line in the CSV becomes an array.
-  //
-  // Empty fields are converted to nulls and non-quoted numbers are converted to integers or floats.
-  //
-  // @return The CSV parsed as an array
-  // @type Array
-  // 
-  // @param {String} s The string to convert
-  // @param {Object} options Options for loading CSV including
-  // 	  @param {Boolean} [trim=false] If set to True leading and trailing
-  // 	    whitespace is stripped off of each non-quoted field as it is imported
-  //	  @param {String} [delimiter=','] A one-character string used to separate
-  //	    fields. It defaults to ','
-  //    @param {String} [quotechar='"'] A one-character string used to quote
-  //      fields containing special characters, such as the delimiter or
-  //      quotechar, or which contain new-line characters. It defaults to '"'
-  //
-  //    @param {Integer} skipInitialRows A integer number of rows to skip (default 0)
+  // For docs see the README
   //
   // Heavily based on uselesscode's JS CSV parser (MIT Licensed):
   // http://www.uselesscode.org/javascript/csv/
-  my.parseCSV= function(s, options) {
+  my.parse= function(s, options) {
     // Get rid of any trailing \n
     s = chomp(s);
 
@@ -186,31 +149,11 @@ this.recline.Backend.CSV = this.recline.Backend.CSV || {};
     return out;
   };
 
-  // ## serializeCSV
-  // 
-  // Convert an Object or a simple array of arrays into a Comma
-  // Separated Values string.
-  //
-  // Nulls are converted to empty fields and integers or floats are converted to non-quoted numbers.
-  //
-  // @return The array serialized as a CSV
-  // @type String
-  // 
-  // @param {Object or Array} dataToSerialize The Object or array of arrays to convert. Object structure must be as follows:
-  //
-  //     {
-  //       fields: [ {id: .., ...}, {id: ..., 
-  //       records: [ { record }, { record }, ... ]
-  //       ... // more attributes we do not care about
-  //     }
-  // 
-  // @param {object} options Options for serializing the CSV file including
-  //   delimiter and quotechar (see parseCSV options parameter above for
-  //   details on these).
+  // ## serialize
   //
   // Heavily based on uselesscode's JS CSV serializer (MIT Licensed):
   // http://www.uselesscode.org/javascript/csv/
-  my.serializeCSV= function(dataToSerialize, options) {
+  my.serialize= function(dataToSerialize, options) {
     var a = null;
     if (dataToSerialize instanceof Array) {
       a = dataToSerialize;
@@ -302,6 +245,11 @@ this.recline.Backend.CSV = this.recline.Backend.CSV || {};
       return s.substring(0, s.length - 1);
     }
   }
+}(CSV));
 
 
-}(this.recline.Backend.CSV));
+// backwards compatability for use in Recline
+var recline = recline || {};
+recline.Backend = recline.Backend || {};
+recline.Backend.CSV = CSV;
+

@@ -1,12 +1,12 @@
 (function ($) {
 module("Backend Local CSV");
 
-test("parseCSV", function() {
+test("parse", function() {
   var csv = '"Jones, Jay",10\n' +
   '"Xyz ""ABC"" O\'Brien",11:35\n' +
   '"Other, AN",12:35\n';
 
-  var array = recline.Backend.CSV.parseCSV(csv);
+  var array = CSV.parse(csv);
   var exp = [
     ['Jones, Jay', 10],
     ['Xyz "ABC" O\'Brien', '11:35' ],
@@ -17,7 +17,7 @@ test("parseCSV", function() {
   var csv = '"Jones, Jay", 10\n' +
   '"Xyz ""ABC"" O\'Brien", 11:35\n' +
   '"Other, AN", 12:35\n';
-  var array = recline.Backend.CSV.parseCSV(csv, {trim : true});
+  var array = CSV.parse(csv, {trim : true});
   deepEqual(exp, array);
 
   var csv = 'Name, Value\n' +
@@ -25,11 +25,10 @@ test("parseCSV", function() {
   '"Xyz ""ABC"" O\'Brien", 11:35\n' +
   '"Other, AN", 12:35\n';
   var dataset = {
-    data: csv,
-    backend: 'csv'
+    data: csv
   };
   // strictly this is asynchronous
-  recline.Backend.CSV.fetch(dataset).done(function(dataset) {
+  CSV.fetch(dataset).done(function(dataset) {
     equal(dataset.records.length, 3);
     var row = dataset.records[0];
     deepEqual(dataset.fields, ['Name', 'Value']);
@@ -37,12 +36,12 @@ test("parseCSV", function() {
   });
 });
 
-test("parseCSV - semicolon", function() {
+test("parse - semicolon", function() {
   var csv = '"Jones; Jay";10\n' +
   '"Xyz ""ABC"" O\'Brien";11:35\n' +
   '"Other; AN";12:35\n';
 
-  var array = recline.Backend.CSV.parseCSV(csv, {delimiter : ';'});
+  var array = CSV.parse(csv, {delimiter : ';'});
   var exp = [
     ['Jones; Jay', 10],
     ['Xyz "ABC" O\'Brien', '11:35' ],
@@ -52,12 +51,12 @@ test("parseCSV - semicolon", function() {
 
 });
 
-test("parseCSV - quotechar", function() {
+test("parse - quotechar", function() {
   var csv = "'Jones, Jay',10\n" +
   "'Xyz \"ABC\" O''Brien',11:35\n" +
   "'Other; AN',12:35\n";
 
-  var array = recline.Backend.CSV.parseCSV(csv, {quotechar:"'"});
+  var array = CSV.parse(csv, {quotechar:"'"});
   var exp = [
     ["Jones, Jay", 10],
     ["Xyz \"ABC\" O'Brien", "11:35" ],
@@ -67,12 +66,12 @@ test("parseCSV - quotechar", function() {
 
 });
 
-test("parseCSV skipInitialRows", function() {
+test("parse skipInitialRows", function() {
   var csv = '"Jones, Jay",10\n' +
   '"Xyz ""ABC"" O\'Brien",11:35\n' +
   '"Other, AN",12:35\n';
 
-  var array = recline.Backend.CSV.parseCSV(csv, {skipInitialRows: 1});
+  var array = CSV.parse(csv, {skipInitialRows: 1});
   var exp = [
     ['Xyz "ABC" O\'Brien', '11:35' ],
     ['Other, AN', '12:35' ]
@@ -80,21 +79,21 @@ test("parseCSV skipInitialRows", function() {
   deepEqual(exp, array);
 });
 
-test("serializeCSV - Array", function() {
+test("serialize - Array", function() {
   var csv = [
     ['Jones, Jay', 10],
     ['Xyz "ABC" O\'Brien', '11:35' ],
     ['Other, AN', '12:35' ]
   ];
 
-  var array = recline.Backend.CSV.serializeCSV(csv);
+  var array = CSV.serialize(csv);
   var exp = '"Jones, Jay",10\n' +
   '"Xyz \"ABC\" O\'Brien",11:35\n' +
   '"Other, AN",12:35\n';
   deepEqual(array, exp);
 });
 
-test("serializeCSV - Object", function() {
+test("serialize - Object", function() {
   var indata = {
     fields: [ {id: 'name'}, {id: 'number'}],
     records: [
@@ -104,7 +103,7 @@ test("serializeCSV - Object", function() {
     ]
   };
 
-  var array = recline.Backend.CSV.serializeCSV(indata);
+  var array = CSV.serialize(indata);
   var exp = 'name,number\n' +
   '"Jones, Jay",10\n' +
   '"Xyz \"ABC\" O\'Brien",11:35\n' +
