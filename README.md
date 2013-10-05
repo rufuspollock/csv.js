@@ -1,4 +1,4 @@
-Simple pure javascript CSV parser focused on the browser.
+Simple pure javascript CSV library focused on the browser.
 
 Originally developed as part of [ReclineJS][] but now fully standalone.
 
@@ -15,27 +15,39 @@ Depends on underscore plus either jQuery or underscore.deferred (for deferred).
 A convenient way to load a CSV file from various different sources. fetch
 supports 3 options depending on the attribute provided on the info argument:
 
-    CSV.fetch(info).done(function(dataset) {
+    CSV.fetch({
+        data: 'raw csv string'
+        // or ...
+        url: 'url to a csv file'
+        // or ...
+        file: an HTML 5 file object
+      }
+    ).done(function(dataset) {
       // dataset object doc'd below
+      console.log(dataset);
     });
 
-* `{data: data}`: `data` is a string in CSV format. This is passed directly to
+Some more detail on the argument object:
+
+* `data` is a string in CSV format. This is passed directly to
   the CSV parser
-* `{url: url}`: a url to an online CSV file that is ajax accessible (note this
+* `url`: a url to an online CSV file that is ajax accessible (note this
   usually requires either local or on a server that is CORS enabled). The file
   is then loaded using jQuery.ajax and parsed using the CSV parser (NB: this
   requires jQuery) All options generates similar data and use the memory store
   outcome, that is they return something like:
-* `{file: fileobj}` `fileobj` is an HTML5 file object. This is opened and
-  parsed with the CSV parser.
+* `file`: is an HTML5 file object. This is opened and parsed with the CSV
+  parser.
 
 Returned `dataset` object looks like:
 
 <pre>
 {
+  // an array of arrays - one array each row in the CSV
+  // (excluding header row - i.e. first row)
   records: [ [...], [...], ... ],
   // list of fields
-  fields: [ ... ],
+  fields: [ 'field-name-1', 'field-name-2', ... ],
   metadata: { may be some metadata e.g. file name }
 }
 </pre>
@@ -88,3 +100,15 @@ Options for serializing the CSV file are:
 
 * `delimiter` and `quotechar` (see parse options parameter above for details on
   these).
+
+## Other JS CSV Libs
+
+* http://www.uselesscode.org/javascript/csv/ - basic CSV parser on which this library was originally based 
+* https://github.com/maxogden/browser-csv-stream - Pure browser version of node-csv from @maxogden via browserify 
+* https://github.com/onyxfish/csvkit.js - pure JS CSV reader from @onyxfish (author of the "legendary" python csvkit)
+
+### Node
+
+* https://github.com/wdavidw/node-csv - this is the Node CSV lib we use by preference
+* https://github.com/maxogden/binary-csv - new CSV lib from @maxogden with a focus on being very fast
+
