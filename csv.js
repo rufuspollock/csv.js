@@ -54,24 +54,37 @@ var CSV = {};
     }
   };
 
+  my.normalizeDialectOptions = function(options) {
+    // note lower case compared to CSV DDF
+    var out = {
+      delimiter: ',',
+      doublequote: true,
+      lineterminator: '\n',
+      quotechar: '"',
+      skipinitialspace: true,
+      skipinitialrows: 0
+    };
+    for (var key in options) {
+      if (key === 'trim') {
+        out['skipinitialspace'] = options.trim;
+      } else {
+        out[key.toLowerCase()] = options[key];
+      }
+    }
+    return out;
+  };
+
   // ## parse
   //
   // For docs see the README
   //
   // Heavily based on uselesscode's JS CSV parser (MIT Licensed):
   // http://www.uselesscode.org/javascript/csv/
-  my.parse= function(s, options) {
+  my.parse= function(s, dialect) {
     // Get rid of any trailing \n
     s = chomp(s);
 
-    var options = options || {};
-    // backwards compatability
-    if (options.skipInitialSpace === undefined && options.trim !== undefined) {
-      options.skipInitialSpace === options.trim;
-    }
-    var trm = (options.skipInitialSpace === false) ? false : true;
-    var delimiter = options.delimiter || ',';
-    var quotechar = options.quotechar || '"';
+    var options = my.normalizeDialectOptions(dialect);
 
     var cur = '', // The character we are currently processing.
       inQuote = false,
@@ -88,7 +101,7 @@ var CSV = {};
         if (field === '') {
           field = null;
         // If the field was not quoted and we are trimming fields, trim it
-        } else if (trm === true) {
+        } else if (options.skipinitialspace === true) {
           field = trim(field);
         }
 
@@ -106,7 +119,7 @@ var CSV = {};
       cur = s.charAt(i);
 
       // If we are at a EOF or EOR
-      if (inQuote === false && (cur === delimiter || cur === "\n")) {
+      if (inQuote === false && (cur === options.delimiter || cur === "\n")) {
         field = processField(field);
         // Add the current field to the current row
         row.push(field);
@@ -120,7 +133,7 @@ var CSV = {};
         fieldQuoted = false;
       } else {
         // If it's not a quotechar, add it to the field buffer
-        if (cur !== quotechar) {
+        if (cur !== options.quotechar) {
           field += cur;
         } else {
           if (!inQuote) {
@@ -129,8 +142,8 @@ var CSV = {};
             fieldQuoted = true;
           } else {
             // Next char is quotechar, this is an escaped quotechar
-            if (s.charAt(i + 1) === quotechar) {
-              field += quotechar;
+            if (s.charAt(i + 1) === options.quotechar) {
+              field += options.quotechar;
               // Skip the next char
               i += 1;
             } else {
@@ -148,7 +161,7 @@ var CSV = {};
     out.push(row);
 
     // Expose the ability to discard initial rows
-    if (options.skipInitialRows) out = out.slice(options.skipInitialRows);
+    if (options.skipinitialrows) out = out.slice(options.skipinitialrows);
 
     return out;
   };
@@ -159,7 +172,7 @@ var CSV = {};
   //
   // Heavily based on uselesscode's JS CSV serializer (MIT Licensed):
   // http://www.uselesscode.org/javascript/csv/
-  my.serialize = function(dataToSerialize, options) {
+  my.serialize = function(dataToSerialize, dialect) {
     var a = null;
     if (dataToSerialize instanceof Array) {
       a = dataToSerialize;
@@ -174,9 +187,7 @@ var CSV = {};
         a.push(tmp);
       });
     }
-    var options = options || {};
-    var delimiter = options.delimiter || ',';
-    var quotechar = options.quotechar || '"';
+    var options = my.normalizeDialectOptions(dialect);
 
     var cur = '', // The character we are currently processing.
       field = '', // Buffer for building up the current field
@@ -192,7 +203,7 @@ var CSV = {};
         field = '';
       } else if (typeof field === "string" && rxNeedsQuoting.test(field)) {
         // Convert string to delimited string
-        field = quotechar + field + quotechar;
+        field = options.quotechar + field + options.quotechar;
       } else if (typeof field === "number") {
         // Convert number to string
         field = field.toString(10);
@@ -213,7 +224,7 @@ var CSV = {};
           row = '';
         } else {
           // Add the current field to the current row
-          row += field + delimiter;
+          row += field + options.delimiter;
         }
         // Flush the field buffer
         field = '';

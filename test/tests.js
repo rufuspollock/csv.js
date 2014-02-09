@@ -111,4 +111,34 @@ test("serialize - Object", function() {
   deepEqual(array, exp);
 });
 
+test('normalizeDialectOptions', function() {
+  var indata = {
+  };
+  var exp = {
+    delimiter: ',',
+    doublequote: true,
+    lineterminator: '\n',
+    quotechar: '"',
+    skipinitialspace: true,
+    skipinitialrows: 0
+  }
+  var out = CSV.normalizeDialectOptions(indata);
+  deepEqual(out, exp);
+
+  var indata = {
+    doubleQuote: false,
+    trim: false
+  };
+  var exp = {
+    delimiter: ',',
+    doublequote: false,
+    lineterminator: '\n',
+    quotechar: '"',
+    skipinitialspace: false,
+    skipinitialrows: 0
+  }
+  var out = CSV.normalizeDialectOptions(indata);
+  deepEqual(out, exp);
+});
+
 })(this.jQuery);
