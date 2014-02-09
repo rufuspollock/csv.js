@@ -86,11 +86,11 @@ test("serialize - Array", function() {
     ['Other, AN', '12:35' ]
   ];
 
-  var array = CSV.serialize(csv);
+  var out = CSV.serialize(csv);
   var exp = '"Jones, Jay",10\n' +
-  '"Xyz \"ABC\" O\'Brien",11:35\n' +
+  '"Xyz ""ABC"" O\'Brien",11:35\n' +
   '"Other, AN",12:35\n';
-  deepEqual(array, exp);
+  deepEqual(out, exp);
 });
 
 test("serialize - Object", function() {
@@ -106,10 +106,23 @@ test("serialize - Object", function() {
   var array = CSV.serialize(indata);
   var exp = 'name,number\n' +
   '"Jones, Jay",10\n' +
-  '"Xyz \"ABC\" O\'Brien",11:35\n' +
+  '"Xyz ""ABC"" O\'Brien",11:35\n' +
   '"Other, AN",12:35\n';
   deepEqual(array, exp);
 });
+
+test("serialize - dialect options", function() {
+  var csv = [
+    ['Jones, Jay', 10],
+    ['Xyz "ABC" O\'Brien', '11:35' ]
+  ];
+
+  var out = CSV.serialize(csv, {doubleQuote: false});
+  var exp = '"Jones, Jay",10\n' +
+  '"Xyz "ABC" O\'Brien",11:35\n'
+  deepEqual(out, exp);
+});
+
 
 test('normalizeDialectOptions', function() {
   var indata = {

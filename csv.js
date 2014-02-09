@@ -212,6 +212,9 @@ var CSV = {};
         // If field is null set to empty string
         field = '';
       } else if (typeof field === "string" && rxNeedsQuoting.test(field)) {
+        if (options.doublequote) {
+          field = field.replace(/"/g, '""');
+        }
         // Convert string to delimited string
         field = options.quotechar + field + options.quotechar;
       } else if (typeof field === "number") {
