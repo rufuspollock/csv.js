@@ -166,6 +166,24 @@ var CSV = {};
     return out;
   };
 
+  my.objectToArray = function(dataToSerialize) {
+    var a = [];
+    var fieldNames = [];
+    for (var ii=0; ii<dataToSerialize.fields.length; ii++) {
+      fieldNames.push(dataToSerialize.fields[ii].id);
+    }
+    a.push(fieldNames);
+    for (var ii=0; ii<dataToSerialize.records.length; ii++) {
+      var tmp = [];
+      var record = dataToSerialize.records[ii];
+      for (var jj=0; jj<fieldNames.length; jj++) {
+        tmp.push(record[fieldNames[jj]]);
+      }
+      a.push(tmp);
+    }
+    return a;
+  }
+
   // ## serialize
   //
   // See README for docs
@@ -177,15 +195,7 @@ var CSV = {};
     if (dataToSerialize instanceof Array) {
       a = dataToSerialize;
     } else {
-      a = [];
-      var fieldNames = _.pluck(dataToSerialize.fields, 'id');
-      a.push(fieldNames);
-      _.each(dataToSerialize.records, function(record, index) {
-        var tmp = _.map(fieldNames, function(fn) {
-          return record[fn];
-        });
-        a.push(tmp);
-      });
+      a = my.objectToArray(dataToSerialize);
     }
     var options = my.normalizeDialectOptions(dialect);
 

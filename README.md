@@ -1,4 +1,7 @@
-Simple pure javascript CSV library focused on the browser.
+## CSV.js
+
+Simple javascript CSV library focused on the browser with **zero
+dependencies**.
 
 Originally developed as part of [ReclineJS][] but now fully standalone.
 
@@ -8,7 +11,8 @@ Originally developed as part of [ReclineJS][] but now fully standalone.
 
 Grab the `csv.js` file and include it in your application.
 
-Depends on underscore plus either jQuery or underscore.deferred (for deferred).
+Depends on jQuery or underscore.deferred (for deferred) in fetch (and jQuery if
+you need ajax). `parse` and `serialize` have zero dependencies.
 
 ### fetch
 
