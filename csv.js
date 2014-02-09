@@ -65,7 +65,11 @@ var CSV = {};
     s = chomp(s);
 
     var options = options || {};
-    var trm = (options.trim === false) ? false : true;
+    // backwards compatability
+    if (options.skipInitialSpace === undefined && options.trim !== undefined) {
+      options.skipInitialSpace === options.trim;
+    }
+    var trm = (options.skipInitialSpace === false) ? false : true;
     var delimiter = options.delimiter || ',';
     var quotechar = options.quotechar || '"';
 
@@ -151,9 +155,11 @@ var CSV = {};
 
   // ## serialize
   //
+  // See README for docs
+  //
   // Heavily based on uselesscode's JS CSV serializer (MIT Licensed):
   // http://www.uselesscode.org/javascript/csv/
-  my.serialize= function(dataToSerialize, options) {
+  my.serialize = function(dataToSerialize, options) {
     var a = null;
     if (dataToSerialize instanceof Array) {
       a = dataToSerialize;

@@ -21,6 +21,13 @@ supports 3 options depending on the attribute provided on the info argument:
         url: 'url to a csv file'
         // or ...
         file: an HTML 5 file object
+
+        // optional options about structure of the CSV file
+        // following the CSV Dialect Description Format 
+        // http://dataprotocols.org/csv-dialect/
+        dialect: {
+          ...
+        }
       }
     ).done(function(dataset) {
       // dataset object doc'd below
@@ -38,6 +45,10 @@ Some more detail on the argument object:
   outcome, that is they return something like:
 * `file`: is an HTML5 file object. This is opened and parsed with the CSV
   parser.
+* `dialect`: hash / dictionary following the same structure as for `parse`
+  method below.
+
+[csvddf]: http://dataprotocols.org/csv-dialect/
 
 Returned `dataset` object looks like:
 
@@ -54,7 +65,7 @@ Returned `dataset` object looks like:
 
 ### Raw parsing
 
-    var out = CSV.parse(csvString, options);
+    var out = CSV.parse(csvString, dialect);
 
 Converts a Comma Separated Values string into an array of arrays.  Each line in
 the CSV becomes an array.
@@ -62,28 +73,24 @@ the CSV becomes an array.
 Empty fields are converted to nulls and non-quoted numbers are converted to
 integers or floats.
 
-Options:
+* `csvString`: the csv string to parse
+* `dialect`: [optional] hash with keys as per the [CSV dialect description
+  format][csvddf]. It also supports the following additional keys:
 
-* trim: {Boolean} [trim=false] If set to True leading and trailing
-  whitespace is stripped off of each non-quoted field as it is
-  imported
-* delimiter {String} [delimiter=','] A one-character string used to
-  separate fields. It defaults to ','
-* quotechar {String} [quotechar='"'] A one-character string used to
-  quote fields containing special characters, such as the delimiter
-  or quotechar, or which contain new-line characters. It defaults to
-  '"' @param {Integer} skipInitialRows A integer number of rows to
-  skip (default 0)
+  * `skipInitialRows`: [optional] integer number of rows to skip (default 0)
+
+  For backwards compatability with earlier versions of the library the `dialect`
+  also supports the following:
+
+  * `trim`: mapped to `skipInitialSpace` in [CSV dialect description
+    format][csvddf]
 
 ### Serialize
 
 Convert an Object or a simple array of arrays into a Comma
 Separated Values string.
 
-    var out = CSV.serialize(dataToSerialize);
-
-Nulls are converted to empty fields and integers or floats are converted to
-non-quoted numbers.
+    var out = CSV.serialize(dataToSerialize, dialect);
 
 Returns a string representing the array serialized as a CSV.
 
@@ -96,10 +103,13 @@ must be as follows:
       ... // more attributes we do not care about
     }
 
-Options for serializing the CSV file are:
+  Nulls are converted to empty fields and integers or floats are converted to
+  non-quoted numbers.
 
-* `delimiter` and `quotechar` (see parse options parameter above for details on
-  these).
+* `dialect`: dialect options for serializing the CSV file as per [CSV Dialect
+  Description Format][csvddf]
+
+----
 
 ## Other JS CSV Libs
 
