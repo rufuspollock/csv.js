@@ -123,6 +123,22 @@ test("serialize - dialect options", function() {
   deepEqual(out, exp);
 });
 
+asyncTest("request fail", function(){
+  var dataset = {
+    url: 'http://fauxurlexample.com',
+  };
+
+  CSV.fetch(dataset).always(function(response, status){
+    if(response.error) {
+      var r = response.error.request;
+      equal(r.status, 0);
+      equal(r.readyState, 0);
+    } else {
+      ok(false);
+    }
+    start();
+  });
+});
 
 test('normalizeDialectOptions', function() {
   var indata = {
