@@ -140,6 +140,26 @@ asyncTest("request fail", function(){
   });
 });
 
+test("parse custom lineterminator", function(){
+  var csv = '"Jones, Jay",10\r' +
+  '"Xyz ""ABC"" O\'Brien",11:35\r' +
+  '"Other, AN",12:35\r';
+
+  var exp = [
+    ['Jones, Jay', 10],
+    ['Xyz "ABC" O\'Brien', '11:35' ],
+    ['Other, AN', '12:35' ]
+  ];
+
+  var settings = {
+    delimiter: ',',
+    lineterminator: '\r',
+  };
+
+  var array = CSV.parse(csv, settings);
+  deepEqual(array, exp);
+});
+
 test('normalizeDialectOptions', function() {
   var indata = {
   };
