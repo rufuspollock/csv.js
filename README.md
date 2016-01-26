@@ -120,6 +120,7 @@ must be as follows:
 * http://www.uselesscode.org/javascript/csv/ - basic CSV parser on which this library was originally based 
 * https://github.com/maxogden/browser-csv-stream - Pure browser version of node-csv from @maxogden via browserify 
 * https://github.com/onyxfish/csvkit.js - pure JS CSV reader from @onyxfish (author of the "legendary" python csvkit)
+* https://github.com/mholt/PapaParse - fast CSV parser that can handle large files and malformed data
 
 ### Node
 
