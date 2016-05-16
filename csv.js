@@ -185,7 +185,6 @@ var CSV = {};
         lineterminator = lineTerminators[i];
       }
     }
-    console.log(lineterminator.codePointAt(0));
     parts = csv_string.split(lineterminator);
     return parts.join((dialect && dialect.lineterminator) ? dialect.lineterminator : '\n');
   };

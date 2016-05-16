@@ -219,6 +219,17 @@ test('normalizeLineTerminator', function() {
   array = CSV.parse(csv);
   deepEqual(exp, array);
 
+  // Override line terminator
+  var settings = {
+    delimiter: ',',
+    lineterminator: '\r',
+  };
+  csv = '"Jones, Jay",10\r' +
+  '"Xyz ""ABC"" O\'Brien",11:35\r' +
+  '"Other, AN",12:35\r';
+  array = CSV.parse(csv, settings);
+  deepEqual(exp, array);
+
 });
 
 })(this.jQuery);
