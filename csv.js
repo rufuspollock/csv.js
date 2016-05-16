@@ -83,6 +83,13 @@ var CSV = {};
   // Heavily based on uselesscode's JS CSV parser (MIT Licensed):
   // http://www.uselesscode.org/javascript/csv/
   my.parse= function(s, dialect) {
+
+    // When line terminator is not provided then we try to guess it
+    // and normalize it across the file.
+    if(!dialect || (dialect && !dialect.lineterminator)) {
+      s = my.normalizeLineTerminator(s, dialect);
+    }
+
     // Get rid of any trailing \n
     s = chomp(s);
 
@@ -166,6 +173,22 @@ var CSV = {};
     if (options.skipinitialrows) out = out.slice(options.skipinitialrows);
 
     return out;
+  };
+
+  my.normalizeLineTerminator = function(csv_string, dialect){
+    var lineTerminators = ['\n\r', '\r', '\n'];
+    var chunk = csv_string.substring(0, 4096);
+    var ocurrences = 0;
+    var lineterminator, parts;
+
+    for(var i = 0; i < lineTerminators.length; i++) {
+      if(chunk.search(lineTerminators[i]) > ocurrences) {
+        lineterminator = lineTerminators[i];
+      }
+    }
+    console.log(lineterminator.codePointAt(0));
+    parts = csv_string.split(lineterminator);
+    return parts.join((dialect && dialect.lineterminator) ? dialect.lineterminator : '\n');
   };
 
   my.objectToArray = function(dataToSerialize) {

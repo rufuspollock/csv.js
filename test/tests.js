@@ -170,4 +170,35 @@ test('normalizeDialectOptions', function() {
   deepEqual(out, exp);
 });
 
+test('normalizeLineTerminator', function() {
+  var exp = [
+    ['Jones, Jay', 10],
+    ['Xyz "ABC" O\'Brien', '11:35' ],
+    ['Other, AN', '12:35' ]
+  ];
+  var csv, array;
+
+  // Multics, Unix and Unix-like systems (Linux, OS X, FreeBSD, AIX, Xenix, etc.), BeOS, Amiga, RISC OS, and other
+  csv = '"Jones, Jay",10\n' +
+  '"Xyz ""ABC"" O\'Brien",11:35\n' +
+  '"Other, AN",12:35\n';
+  array = CSV.parse(csv);
+  deepEqual(exp, array);
+
+  // Commodore 8-bit machines, Acorn BBC, ZX Spectrum, TRS-80, Apple II family, Oberon, Mac OS up to version 9, and OS-9
+  csv = '"Jones, Jay",10\r' +
+  '"Xyz ""ABC"" O\'Brien",11:35\r' +
+  '"Other, AN",12:35\r';
+  array = CSV.parse(csv);
+  deepEqual(exp, array);
+
+  // Microsoft Windows, DOS (MS-DOS, PC DOS, etc.),
+  csv = '"Jones, Jay",10\r\n' +
+  '"Xyz ""ABC"" O\'Brien",11:35\r\n' +
+  '"Other, AN",12:35\r\n';
+  array = CSV.parse(csv);
+  deepEqual(exp, array);
+
+});
+
 })(this.jQuery);
