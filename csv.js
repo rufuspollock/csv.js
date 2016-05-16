@@ -91,9 +91,8 @@ var CSV = {};
     }
 
     // Get rid of any trailing \n
-    s = chomp(s);
-
     var options = my.normalizeDialectOptions(dialect);
+    s = chomp(s, options.lineterminator);
 
     var cur = '', // The character we are currently processing.
       inQuote = false,
@@ -128,12 +127,12 @@ var CSV = {};
       cur = s.charAt(i);
 
       // If we are at a EOF or EOR
-      if (inQuote === false && (cur === options.delimiter || cur === "\n")) {
+      if (inQuote === false && (cur === options.delimiter || cur === options.lineterminator)) {
         field = processField(field);
         // Add the current field to the current row
         row.push(field);
         // If this is EOR append row to output and flush row
-        if (cur === "\n") {
+        if (cur === options.lineterminator) {
           out.push(row);
           row = [];
         }
@@ -258,7 +257,7 @@ var CSV = {};
         // If this is EOR append row to output and flush row
         if (j === (cur.length - 1)) {
           row += field;
-          out += row + "\n";
+          out += row + options.lineterminator;
           row = '';
         } else {
           // Add the current field to the current row
@@ -291,13 +290,13 @@ var CSV = {};
       }
     }());
 
-  function chomp(s) {
-    if (s.charAt(s.length - 1) !== "\n") {
+  function chomp(s, lineterminator) {
+    if (s.charAt(s.length - lineterminator.length) !== lineterminator) {
       // Does not end with \n, just return string
       return s;
     } else {
       // Remove the \n
-      return s.substring(0, s.length - 1);
+      return s.substring(0, s.length - lineterminator.length);
     }
   }
 }(CSV));
