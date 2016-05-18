@@ -230,6 +230,18 @@ test('normalizeLineTerminator', function() {
   array = CSV.parse(csv, settings);
   deepEqual(exp, array);
 
+  // Nested mixed terminators
+  var exp = [
+    ['Jones,\n Jay', 10],
+    ['Xyz "ABC" O\'Brien', '11:35' ],
+    ['Other, AN', '12:35' ]
+  ];
+  csv = '"Jones,\n Jay",10\r' +
+  '"Xyz ""ABC"" O\'Brien",11:35\r' +
+  '"Other, AN",12:35\r';
+  array = CSV.parse(csv, settings);
+  deepEqual(exp, array);
+
 });
 
 })(this.jQuery);

@@ -174,19 +174,15 @@ var CSV = {};
     return out;
   };
 
-  my.normalizeLineTerminator = function(csv_string, dialect){
-    var lineTerminators = ['\n\r', '\r', '\n'];
-    var chunk = csv_string.substring(0, 4096);
-    var ocurrences = 0;
-    var lineterminator, parts;
+  my.normalizeLineTerminator = function(csvString, dialect){
+    dialect = dialect || {};
 
-    for(var i = 0; i < lineTerminators.length; i++) {
-      if(chunk.search(lineTerminators[i]) > ocurrences) {
-        lineterminator = lineTerminators[i];
-      }
+    // Try to guess line terminator if it's not provided.
+    if (!dialect.lineterminator) {
+      return csvString.replace(/(\r\n|\n|\r)/gm, '\n');
     }
-    parts = csv_string.split(lineterminator);
-    return parts.join((dialect && dialect.lineterminator) ? dialect.lineterminator : '\n');
+    // if not return the string untouched.
+    return csvString;
   };
 
   my.objectToArray = function(dataToSerialize) {
