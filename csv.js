@@ -22,7 +22,7 @@ var CSV = {};
         dfd.resolve(out);
       };
       reader.onerror = function (e) {
-        dfd.reject({error: {message: 'Failed to load file', code: e.target.error.code}});
+        dfd.reject({error: {message: 'Failed to load file. Code: ' + e.target.error.code }});
       };
       reader.readAsText(dataset.file, encoding);
     } else if (dataset.data) {
@@ -35,7 +35,7 @@ var CSV = {};
         out.useMemoryStore = true;
         dfd.resolve(out);
       }).fail(function(req, status){
-        dfd.reject({error: {message: status, request: req}});
+        dfd.reject({error: {message: 'Failed to load file. ' + req.statusText + '. Code: ' + req.status, request: req}});
       });
     }
     return dfd.promise();
