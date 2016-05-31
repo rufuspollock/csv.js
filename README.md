@@ -127,3 +127,24 @@ must be as follows:
 * https://github.com/wdavidw/node-csv - this is the Node CSV lib we use by preference
 * https://github.com/maxogden/binary-csv - new CSV lib from @maxogden with a focus on being very fast
 
+### Development
+**Requirements**
+* webpack
+* jquery
+```
+npm install
+npm install jquery
+webpack-dev-server
+```
+
+### Run tests
+**Requirements**
+* karma
+* phantomjs
+
+```
+npm -g install karma karma-cli phantomjs-prebuilt
+npm install
+npm install jquery
+npm test
+```

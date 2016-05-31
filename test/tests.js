@@ -1,247 +1,242 @@
-(function ($) {
-module("Backend Local CSV");
+describe("Backend Local CSV", function() {
+  it("parse", function() {
+    var csv = '"Jones, Jay",10\n' +
+    '"Xyz ""ABC"" O\'Brien",11:35\n' +
+    '"Other, AN",12:35\n';
 
-test("parse", function() {
-  var csv = '"Jones, Jay",10\n' +
-  '"Xyz ""ABC"" O\'Brien",11:35\n' +
-  '"Other, AN",12:35\n';
+    var array = CSV.parse(csv);
+    var exp = [
+      ['Jones, Jay', 10],
+      ['Xyz "ABC" O\'Brien', '11:35' ],
+      ['Other, AN', '12:35' ]
+    ];
+    expect(array).toEqual(exp);
 
-  var array = CSV.parse(csv);
-  var exp = [
-    ['Jones, Jay', 10],
-    ['Xyz "ABC" O\'Brien', '11:35' ],
-    ['Other, AN', '12:35' ]
-  ];
-  deepEqual(exp, array);
+    var csv = '"Jones, Jay", 10\n' +
+    '"Xyz ""ABC"" O\'Brien", 11:35\n' +
+    '"Other, AN", 12:35\n';
+    var array = CSV.parse(csv, {trim : true});
+    expect(array).toEqual(exp);
 
-  var csv = '"Jones, Jay", 10\n' +
-  '"Xyz ""ABC"" O\'Brien", 11:35\n' +
-  '"Other, AN", 12:35\n';
-  var array = CSV.parse(csv, {trim : true});
-  deepEqual(exp, array);
-
-  var csv = 'Name, Value\n' +
-  '"Jones, Jay", 10\n' +
-  '"Xyz ""ABC"" O\'Brien", 11:35\n' +
-  '"Other, AN", 12:35\n';
-  var dataset = {
-    data: csv
-  };
-  // strictly this is asynchronous
-  CSV.fetch(dataset).done(function(dataset) {
-    equal(dataset.records.length, 3);
-    var row = dataset.records[0];
-    deepEqual(dataset.fields, ['Name', 'Value']);
-    deepEqual(row, ['Jones, Jay', 10]);
+    var csv = 'Name, Value\n' +
+    '"Jones, Jay", 10\n' +
+    '"Xyz ""ABC"" O\'Brien", 11:35\n' +
+    '"Other, AN", 12:35\n';
+    var dataset = {
+      data: csv
+    };
+    // strictly this is asynchronous
+    CSV.fetch(dataset).done(function(dataset) {
+      expect(dataset.records.length).toEqual(3);
+      var row = dataset.records[0];
+      expect(dataset.fields).toEqual(['Name', 'Value']);
+      expect(row).toEqual(['Jones, Jay', 10]);
+    });
   });
-});
 
-test("parse - semicolon", function() {
-  var csv = '"Jones; Jay";10\n' +
-  '"Xyz ""ABC"" O\'Brien";11:35\n' +
-  '"Other; AN";12:35\n';
+  it("parse - semicolon", function() {
+    var csv = '"Jones; Jay";10\n' +
+    '"Xyz ""ABC"" O\'Brien";11:35\n' +
+    '"Other; AN";12:35\n';
 
-  var array = CSV.parse(csv, {delimiter : ';'});
-  var exp = [
-    ['Jones; Jay', 10],
-    ['Xyz "ABC" O\'Brien', '11:35' ],
-    ['Other; AN', '12:35' ]
-  ];
-  deepEqual(exp, array);
+    var array = CSV.parse(csv, {delimiter : ';'});
+    var exp = [
+      ['Jones; Jay', 10],
+      ['Xyz "ABC" O\'Brien', '11:35' ],
+      ['Other; AN', '12:35' ]
+    ];
+    expect(array).toEqual(exp);
+  });
 
-});
+  it("parse - quotechar", function() {
+    var csv = "'Jones, Jay',10\n" +
+    "'Xyz \"ABC\" O''Brien',11:35\n" +
+    "'Other; AN',12:35\n";
 
-test("parse - quotechar", function() {
-  var csv = "'Jones, Jay',10\n" +
-  "'Xyz \"ABC\" O''Brien',11:35\n" +
-  "'Other; AN',12:35\n";
+    var array = CSV.parse(csv, {quotechar:"'"});
+    var exp = [
+      ["Jones, Jay", 10],
+      ["Xyz \"ABC\" O'Brien", "11:35" ],
+      ["Other; AN", "12:35" ]
+    ];
+    expect(array).toEqual(exp);
+  });
 
-  var array = CSV.parse(csv, {quotechar:"'"});
-  var exp = [
-    ["Jones, Jay", 10],
-    ["Xyz \"ABC\" O'Brien", "11:35" ],
-    ["Other; AN", "12:35" ]
-  ];
-  deepEqual(exp, array);
+  it("parse skipInitialRows", function() {
+    var csv = '"Jones, Jay",10\n' +
+    '"Xyz ""ABC"" O\'Brien",11:35\n' +
+    '"Other, AN",12:35\n';
 
-});
+    var array = CSV.parse(csv, {skipInitialRows: 1});
+    var exp = [
+      ['Xyz "ABC" O\'Brien', '11:35' ],
+      ['Other, AN', '12:35' ]
+    ];
+    expect(array).toEqual(exp);
+  });
 
-test("parse skipInitialRows", function() {
-  var csv = '"Jones, Jay",10\n' +
-  '"Xyz ""ABC"" O\'Brien",11:35\n' +
-  '"Other, AN",12:35\n';
+  it("serialize - Array", function() {
+    var csv = [
+      ['Jones, Jay', 10],
+      ['Xyz "ABC" O\'Brien', '11:35' ],
+      ['Other, AN', '12:35' ]
+    ];
 
-  var array = CSV.parse(csv, {skipInitialRows: 1});
-  var exp = [
-    ['Xyz "ABC" O\'Brien', '11:35' ],
-    ['Other, AN', '12:35' ]
-  ];
-  deepEqual(exp, array);
-});
+    var out = CSV.serialize(csv);
+    var exp = '"Jones, Jay",10\n' +
+    '"Xyz ""ABC"" O\'Brien",11:35\n' +
+    '"Other, AN",12:35\n';
+    expect(out).toEqual(exp);
+  });
 
-test("serialize - Array", function() {
-  var csv = [
-    ['Jones, Jay', 10],
-    ['Xyz "ABC" O\'Brien', '11:35' ],
-    ['Other, AN', '12:35' ]
-  ];
+  it("serialize - Object", function() {
+    var indata = {
+      fields: [ {id: 'name'}, {id: 'number'}],
+      records: [
+        {name: 'Jones, Jay', number: 10},
+        {name: 'Xyz "ABC" O\'Brien', number: '11:35' },
+        {name: 'Other, AN', number: '12:35' }
+      ]
+    };
 
-  var out = CSV.serialize(csv);
-  var exp = '"Jones, Jay",10\n' +
-  '"Xyz ""ABC"" O\'Brien",11:35\n' +
-  '"Other, AN",12:35\n';
-  deepEqual(out, exp);
-});
+    var array = CSV.serialize(indata);
+    var exp = 'name,number\n' +
+    '"Jones, Jay",10\n' +
+    '"Xyz ""ABC"" O\'Brien",11:35\n' +
+    '"Other, AN",12:35\n';
+    expect(array).toEqual(exp);
+  });
 
-test("serialize - Object", function() {
-  var indata = {
-    fields: [ {id: 'name'}, {id: 'number'}],
-    records: [
-      {name: 'Jones, Jay', number: 10},
-      {name: 'Xyz "ABC" O\'Brien', number: '11:35' },
-      {name: 'Other, AN', number: '12:35' }
-    ]
-  };
+  it("serialize - dialect options", function() {
+    var csv = [
+      ['Jones, Jay', 10],
+      ['Xyz "ABC" O\'Brien', '11:35' ]
+    ];
 
-  var array = CSV.serialize(indata);
-  var exp = 'name,number\n' +
-  '"Jones, Jay",10\n' +
-  '"Xyz ""ABC"" O\'Brien",11:35\n' +
-  '"Other, AN",12:35\n';
-  deepEqual(array, exp);
-});
+    var out = CSV.serialize(csv, {doubleQuote: false});
+    var exp = '"Jones, Jay",10\n' +
+    '"Xyz "ABC" O\'Brien",11:35\n'
+    expect(out).toEqual(exp);
+  });
 
-test("serialize - dialect options", function() {
-  var csv = [
-    ['Jones, Jay', 10],
-    ['Xyz "ABC" O\'Brien', '11:35' ]
-  ];
+  it("request fail", function(done){
+    var dataset = {
+      url: "http://fauxurlexample.com",
+    };
 
-  var out = CSV.serialize(csv, {doubleQuote: false});
-  var exp = '"Jones, Jay",10\n' +
-  '"Xyz "ABC" O\'Brien",11:35\n'
-  deepEqual(out, exp);
-});
+    CSV.fetch(dataset).always(function(response, status){
+      if(response.error) {
+        var r = response.error.request;
+        expect(r.status).toEqual(0);
+        expect(r.readyState).toEqual(0);
+      } else {
+        throw new Error("Response should fail but it didn't")
+      }
+      done();
+    });
+  });
 
-asyncTest("request fail", function(){
-  var dataset = {
-    url: 'http://fauxurlexample.com',
-  };
+  it("parse custom lineterminator", function(){
+    var csv = '"Jones, Jay",10\r' +
+    '"Xyz ""ABC"" O\'Brien",11:35\r' +
+    '"Other, AN",12:35\r';
 
-  CSV.fetch(dataset).always(function(response, status){
-    if(response.error) {
-      var r = response.error.request;
-      equal(r.status, 0);
-      equal(r.readyState, 0);
-    } else {
-      ok(false);
+    var exp = [
+      ['Jones, Jay', 10],
+      ['Xyz "ABC" O\'Brien', '11:35' ],
+      ['Other, AN', '12:35' ]
+    ];
+
+    var settings = {
+      delimiter: ',',
+      lineterminator: '\r',
+    };
+
+    var array = CSV.parse(csv, settings);
+    expect(array).toEqual(exp);
+  });
+
+  it('normalizeDialectOptions', function() {
+    var indata = {
+    };
+    var exp = {
+      delimiter: ',',
+      doublequote: true,
+      lineterminator: '\n',
+      quotechar: '"',
+      skipinitialspace: true,
+      skipinitialrows: 0
     }
-    start();
+    var out = CSV.normalizeDialectOptions(indata);
+    expect(out).toEqual(exp);
+
+    var indata = {
+      doubleQuote: false,
+      trim: false
+    };
+    var exp = {
+      delimiter: ',',
+      doublequote: false,
+      lineterminator: '\n',
+      quotechar: '"',
+      skipinitialspace: false,
+      skipinitialrows: 0
+    }
+    var out = CSV.normalizeDialectOptions(indata);
+    expect(out).toEqual(exp);
   });
-});
 
-test("parse custom lineterminator", function(){
-  var csv = '"Jones, Jay",10\r' +
-  '"Xyz ""ABC"" O\'Brien",11:35\r' +
-  '"Other, AN",12:35\r';
+  it('normalizeLineTerminator', function() {
+    var exp = [
+      ['Jones, Jay', 10],
+      ['Xyz "ABC" O\'Brien', '11:35' ],
+      ['Other, AN', '12:35' ]
+    ];
+    var csv, array;
 
-  var exp = [
-    ['Jones, Jay', 10],
-    ['Xyz "ABC" O\'Brien', '11:35' ],
-    ['Other, AN', '12:35' ]
-  ];
+    // Multics, Unix and Unix-like systems (Linux, OS X, FreeBSD, AIX, Xenix, etc.), BeOS, Amiga, RISC OS, and other
+    csv = '"Jones, Jay",10\n' +
+    '"Xyz ""ABC"" O\'Brien",11:35\n' +
+    '"Other, AN",12:35\n';
+    array = CSV.parse(csv);
+    expect(array).toEqual(exp);
 
-  var settings = {
-    delimiter: ',',
-    lineterminator: '\r',
-  };
+    // Commodore 8-bit machines, Acorn BBC, ZX Spectrum, TRS-80, Apple II family, Oberon, Mac OS up to version 9, and OS-9
+    csv = '"Jones, Jay",10\r' +
+    '"Xyz ""ABC"" O\'Brien",11:35\r' +
+    '"Other, AN",12:35\r';
+    array = CSV.parse(csv);
+    expect(array).toEqual(exp);
 
-  var array = CSV.parse(csv, settings);
-  deepEqual(array, exp);
-});
+    // Microsoft Windows, DOS (MS-DOS, PC DOS, etc.),
+    csv = '"Jones, Jay",10\r\n' +
+    '"Xyz ""ABC"" O\'Brien",11:35\r\n' +
+    '"Other, AN",12:35\r\n';
+    array = CSV.parse(csv);
+    expect(array).toEqual(exp);
 
-test('normalizeDialectOptions', function() {
-  var indata = {
-  };
-  var exp = {
-    delimiter: ',',
-    doublequote: true,
-    lineterminator: '\n',
-    quotechar: '"',
-    skipinitialspace: true,
-    skipinitialrows: 0
-  }
-  var out = CSV.normalizeDialectOptions(indata);
-  deepEqual(out, exp);
+    // Override line terminator
+    var settings = {
+      delimiter: ',',
+      lineterminator: '\r',
+    };
+    csv = '"Jones, Jay",10\r' +
+    '"Xyz ""ABC"" O\'Brien",11:35\r' +
+    '"Other, AN",12:35\r';
+    array = CSV.parse(csv, settings);
+    expect(array).toEqual(exp);
 
-  var indata = {
-    doubleQuote: false,
-    trim: false
-  };
-  var exp = {
-    delimiter: ',',
-    doublequote: false,
-    lineterminator: '\n',
-    quotechar: '"',
-    skipinitialspace: false,
-    skipinitialrows: 0
-  }
-  var out = CSV.normalizeDialectOptions(indata);
-  deepEqual(out, exp);
-});
-
-test('normalizeLineTerminator', function() {
-  var exp = [
-    ['Jones, Jay', 10],
-    ['Xyz "ABC" O\'Brien', '11:35' ],
-    ['Other, AN', '12:35' ]
-  ];
-  var csv, array;
-
-  // Multics, Unix and Unix-like systems (Linux, OS X, FreeBSD, AIX, Xenix, etc.), BeOS, Amiga, RISC OS, and other
-  csv = '"Jones, Jay",10\n' +
-  '"Xyz ""ABC"" O\'Brien",11:35\n' +
-  '"Other, AN",12:35\n';
-  array = CSV.parse(csv);
-  deepEqual(exp, array);
-
-  // Commodore 8-bit machines, Acorn BBC, ZX Spectrum, TRS-80, Apple II family, Oberon, Mac OS up to version 9, and OS-9
-  csv = '"Jones, Jay",10\r' +
-  '"Xyz ""ABC"" O\'Brien",11:35\r' +
-  '"Other, AN",12:35\r';
-  array = CSV.parse(csv);
-  deepEqual(exp, array);
-
-  // Microsoft Windows, DOS (MS-DOS, PC DOS, etc.),
-  csv = '"Jones, Jay",10\r\n' +
-  '"Xyz ""ABC"" O\'Brien",11:35\r\n' +
-  '"Other, AN",12:35\r\n';
-  array = CSV.parse(csv);
-  deepEqual(exp, array);
-
-  // Override line terminator
-  var settings = {
-    delimiter: ',',
-    lineterminator: '\r',
-  };
-  csv = '"Jones, Jay",10\r' +
-  '"Xyz ""ABC"" O\'Brien",11:35\r' +
-  '"Other, AN",12:35\r';
-  array = CSV.parse(csv, settings);
-  deepEqual(exp, array);
-
-  // Nested mixed terminators
-  var exp = [
-    ['Jones,\n Jay', 10],
-    ['Xyz "ABC" O\'Brien', '11:35' ],
-    ['Other, AN', '12:35' ]
-  ];
-  csv = '"Jones,\n Jay",10\r' +
-  '"Xyz ""ABC"" O\'Brien",11:35\r' +
-  '"Other, AN",12:35\r';
-  array = CSV.parse(csv, settings);
-  deepEqual(exp, array);
+    // Nested mixed terminators
+    var exp = [
+      ['Jones,\n Jay', 10],
+      ['Xyz "ABC" O\'Brien', '11:35' ],
+      ['Other, AN', '12:35' ]
+    ];
+    csv = '"Jones,\n Jay",10\r' +
+    '"Xyz ""ABC"" O\'Brien",11:35\r' +
+    '"Other, AN",12:35\r';
+    array = CSV.parse(csv, settings);
+    expect(array).toEqual(exp);
+  });
 
 });
-
-})(this.jQuery);
