@@ -1,28 +1,49 @@
+/* global jQuery, _ */
 var CSV = {};
 
 // Note that provision of jQuery is optional (it is **only** needed if you use fetch on a remote file)
 (function(my) {
   "use strict";
-  my.__type__ = 'csv';
+  my.__type__ = "csv";
 
   // use either jQuery or Underscore Deferred depending on what is available
-  var Deferred = (typeof jQuery !== "undefined" && jQuery.Deferred) || _.Deferred;
+  var Deferred =
+    (typeof jQuery !== "undefined" && jQuery.Deferred) ||
+    (typeof _ !== "undefined" && _.Deferred) ||
+    function() {
+      var resolve, reject;
+      var promise = new Promise(function(res, rej) {
+        resolve = res;
+        reject = rej;
+      });
+      return {
+        resolve: resolve,
+        reject: reject,
+        promise: function() {
+          return promise;
+        }
+      };
+    };
 
   my.fetch = function(dataset) {
     var dfd = new Deferred();
     if (dataset.file) {
       var reader = new FileReader();
-      var encoding = dataset.encoding || 'UTF-8';
+      var encoding = dataset.encoding || "UTF-8";
       reader.onload = function(e) {
         var out = my.extractFields(my.parse(e.target.result, dataset), dataset);
         out.useMemoryStore = true;
         out.metadata = {
           filename: dataset.file.name
-        }
+        };
         dfd.resolve(out);
       };
-      reader.onerror = function (e) {
-        dfd.reject({error: {message: 'Failed to load file. Code: ' + e.target.error.code }});
+      reader.onerror = function(e) {
+        dfd.reject({
+          error: {
+            message: "Failed to load file. Code: " + e.target.error.code
+          }
+        });
       };
       reader.readAsText(dataset.file, encoding);
     } else if (dataset.data) {
@@ -30,13 +51,47 @@ var CSV = {};
       out.useMemoryStore = true;
       dfd.resolve(out);
     } else if (dataset.url) {
-      jQuery.get(dataset.url).done(function(data) {
-        var out = my.extractFields(my.parse(data, dataset), dataset);
-        out.useMemoryStore = true;
-        dfd.resolve(out);
-      }).fail(function(req, status){
-        dfd.reject({error: {message: 'Failed to load file. ' + req.statusText + '. Code: ' + req.status, request: req}});
-      });
+      var fetch =
+        window.fetch ||
+        function(url) {
+          var jq = jQuery.get(url);
+
+          var promiseResult = {
+            then: function(res) {
+              jq.done(res);
+              return promiseResult;
+            },
+            catch: function(rej) {
+              jq.fail(rej);
+              return promiseResult;
+            }
+          };
+          return promiseResult;
+        };
+      fetch(dataset.url)
+        .then(function(response) {
+          if (response.text) {
+            return response.text();
+          } else {
+            return response;
+          }
+        })
+        .then(function(data) {
+          var out = my.extractFields(my.parse(data, dataset), dataset);
+          out.useMemoryStore = true;
+          dfd.resolve(out);
+        })
+        .catch(function(req, status) {
+          dfd.reject({
+            error: {
+              message: "Failed to load file. " +
+                req.statusText +
+                ". Code: " +
+                req.status,
+              request: req
+            }
+          });
+        });
     }
     return dfd.promise();
   };
@@ -48,27 +103,27 @@ var CSV = {};
       return {
         fields: rows[0],
         records: rows.slice(1)
-      }
+      };
     } else {
       return {
         records: rows
-      }
+      };
     }
   };
 
   my.normalizeDialectOptions = function(options) {
     // note lower case compared to CSV DDF
     var out = {
-      delimiter: ',',
+      delimiter: ",",
       doublequote: true,
-      lineterminator: '\n',
+      lineterminator: "\n",
       quotechar: '"',
       skipinitialspace: true,
       skipinitialrows: 0
     };
     for (var key in options) {
-      if (key === 'trim') {
-        out['skipinitialspace'] = options.trim;
+      if (key === "trim") {
+        out["skipinitialspace"] = options.trim;
       } else {
         out[key.toLowerCase()] = options[key];
       }
@@ -82,11 +137,10 @@ var CSV = {};
   //
   // Heavily based on uselesscode's JS CSV parser (MIT Licensed):
   // http://www.uselesscode.org/javascript/csv/
-  my.parse= function(s, dialect) {
-
+  my.parse = function(s, dialect) {
     // When line terminator is not provided then we try to guess it
     // and normalize it across the file.
-    if(!dialect || (dialect && !dialect.lineterminator)) {
+    if (!dialect || (dialect && !dialect.lineterminator)) {
       s = my.normalizeLineTerminator(s, dialect);
     }
 
@@ -94,21 +148,21 @@ var CSV = {};
     var options = my.normalizeDialectOptions(dialect);
     s = chomp(s, options.lineterminator);
 
-    var cur = '', // The character we are currently processing.
+    var cur = "", // The character we are currently processing.
       inQuote = false,
       fieldQuoted = false,
-      field = '', // Buffer for building up the current field
+      field = "", // Buffer for building up the current field
       row = [],
       out = [],
       i,
       processField;
 
-    processField = function (field) {
+    processField = function(field) {
       if (fieldQuoted !== true) {
         // If field is empty set to null
-        if (field === '') {
+        if (field === "") {
           field = null;
-        // If the field was not quoted and we are trimming fields, trim it
+          // If the field was not quoted and we are trimming fields, trim it
         } else if (options.skipinitialspace === true) {
           field = trim(field);
         }
@@ -127,7 +181,10 @@ var CSV = {};
       cur = s.charAt(i);
 
       // If we are at a EOF or EOR
-      if (inQuote === false && (cur === options.delimiter || cur === options.lineterminator)) {
+      if (
+        inQuote === false &&
+        (cur === options.delimiter || cur === options.lineterminator)
+      ) {
         field = processField(field);
         // Add the current field to the current row
         row.push(field);
@@ -137,7 +194,7 @@ var CSV = {};
           row = [];
         }
         // Flush the field buffer
-        field = '';
+        field = "";
         fieldQuoted = false;
       } else {
         // If it's not a quotechar, add it to the field buffer
@@ -174,12 +231,12 @@ var CSV = {};
     return out;
   };
 
-  my.normalizeLineTerminator = function(csvString, dialect){
+  my.normalizeLineTerminator = function(csvString, dialect) {
     dialect = dialect || {};
 
     // Try to guess line terminator if it's not provided.
     if (!dialect.lineterminator) {
-      return csvString.replace(/(\r\n|\n|\r)/gm, '\n');
+      return csvString.replace(/(\r\n|\n|\r)/gm, "\n");
     }
     // if not return the string untouched.
     return csvString;
@@ -188,20 +245,20 @@ var CSV = {};
   my.objectToArray = function(dataToSerialize) {
     var a = [];
     var fieldNames = [];
-    for (var ii=0; ii<dataToSerialize.fields.length; ii++) {
+    for (var ii = 0; ii < dataToSerialize.fields.length; ii++) {
       fieldNames.push(dataToSerialize.fields[ii].id);
     }
     a.push(fieldNames);
-    for (var ii=0; ii<dataToSerialize.records.length; ii++) {
+    for (var ii = 0; ii < dataToSerialize.records.length; ii++) {
       var tmp = [];
       var record = dataToSerialize.records[ii];
-      for (var jj=0; jj<fieldNames.length; jj++) {
+      for (var jj = 0; jj < fieldNames.length; jj++) {
         tmp.push(record[fieldNames[jj]]);
       }
       a.push(tmp);
     }
     return a;
-  }
+  };
 
   // ## serialize
   //
@@ -218,18 +275,18 @@ var CSV = {};
     }
     var options = my.normalizeDialectOptions(dialect);
 
-    var cur = '', // The character we are currently processing.
-      field = '', // Buffer for building up the current field
-      row = '',
-      out = '',
+    var cur = "", // The character we are currently processing.
+      field = "", // Buffer for building up the current field
+      row = "",
+      out = "",
       i,
       j,
       processField;
 
-    processField = function (field) {
+    processField = function(field) {
       if (field === null) {
         // If field is null set to empty string
-        field = '';
+        field = "";
       } else if (typeof field === "string" && rxNeedsQuoting.test(field)) {
         if (options.doublequote) {
           field = field.replace(/"/g, '""');
@@ -250,16 +307,16 @@ var CSV = {};
       for (j = 0; j < cur.length; j += 1) {
         field = processField(cur[j]);
         // If this is EOR append row to output and flush row
-        if (j === (cur.length - 1)) {
+        if (j === cur.length - 1) {
           row += field;
           out += row + options.lineterminator;
-          row = '';
+          row = "";
         } else {
           // Add the current field to the current row
           row += field + options.delimiter;
         }
         // Flush the field buffer
-        field = '';
+        field = "";
       }
     }
 
@@ -272,18 +329,18 @@ var CSV = {};
     // contains a comma double quote or a newline
     // it needs to be quoted in CSV output
     rxNeedsQuoting = /^\s|\s$|,|"|\n/,
-    trim = (function () {
+    trim = (function() {
       // Fx 3.1 has a native trim function, it's about 10x faster, use it if it exists
       if (String.prototype.trim) {
-        return function (s) {
+        return function(s) {
           return s.trim();
         };
       } else {
-        return function (s) {
-          return s.replace(/^\s*/, '').replace(/\s*$/, '');
+        return function(s) {
+          return s.replace(/^\s*/, "").replace(/\s*$/, "");
         };
       }
-    }());
+    })();
 
   function chomp(s, lineterminator) {
     if (s.charAt(s.length - lineterminator.length) !== lineterminator) {
@@ -294,11 +351,13 @@ var CSV = {};
       return s.substring(0, s.length - lineterminator.length);
     }
   }
-}(CSV));
-
+})(CSV);
 
 // backwards compatability for use in Recline
 var recline = recline || {};
 recline.Backend = recline.Backend || {};
 recline.Backend.CSV = CSV;
 
+if (module) {
+  module.exports = CSV;
+}
