@@ -358,6 +358,6 @@ var recline = recline || {};
 recline.Backend = recline.Backend || {};
 recline.Backend.CSV = CSV;
 
-if (module) {
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = CSV;
 }
