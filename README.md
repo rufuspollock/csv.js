@@ -1,7 +1,6 @@
 ## CSV.js
 
-Simple javascript CSV library focused on the browser with **zero
-dependencies**.
+Simple, ultra light (10kb uncompressed) javascript CSV library for browser and node with **zero dependencies**.
 
 Originally developed as part of [ReclineJS][] but now fully standalone.
 
