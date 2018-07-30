@@ -27,7 +27,7 @@ supports 3 options depending on the attribute provided on the info argument:
 
         // optional options about structure of the CSV file
         // following the CSV Dialect Description Format 
-        // http://dataprotocols.org/csv-dialect/
+        // https://frictionlessdata.io/specs/csv-dialect/
         dialect: {
           ...
         }
@@ -51,7 +51,7 @@ Some more detail on the argument object:
 * `dialect`: hash / dictionary following the same structure as for `parse`
   method below.
 
-[csvddf]: http://dataprotocols.org/csv-dialect/
+[csvddf]: https://frictionlessdata.io/specs/csv-dialect/
 
 Returned `dataset` object looks like:
 
