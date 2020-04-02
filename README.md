@@ -101,7 +101,7 @@ Returns a string representing the array serialized as a CSV.
 must be as follows:
 
     {
-      fields: [ {id: .., ...}, {id: ..., 
+      fields: [ {id: .., label: .., ...}, {id: ..., 
       records: [ { record }, { record }, ... ]
       ... // more attributes we do not care about
     }

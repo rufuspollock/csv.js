@@ -245,15 +245,19 @@ var CSV = {};
   my.objectToArray = function(dataToSerialize) {
     var a = [];
     var fieldNames = [];
+    var fieldIds = [];
     for (var ii = 0; ii < dataToSerialize.fields.length; ii++) {
-      fieldNames.push(dataToSerialize.fields[ii].id);
+      var id = dataToSerialize.fields[ii].id;
+      fieldIds.push(id);
+      var label = dataToSerialize.fields[ii].label ? dataToSerialize.fields[ii].label : id;
+      fieldNames.push(label);
     }
     a.push(fieldNames);
     for (var ii = 0; ii < dataToSerialize.records.length; ii++) {
       var tmp = [];
       var record = dataToSerialize.records[ii];
-      for (var jj = 0; jj < fieldNames.length; jj++) {
-        tmp.push(record[fieldNames[jj]]);
+      for (var jj = 0; jj < fieldIds.length; jj++) {
+        tmp.push(record[fieldIds[jj]]);
       }
       a.push(tmp);
     }
