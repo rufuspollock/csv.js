@@ -101,13 +101,15 @@ Returns a string representing the array serialized as a CSV.
 must be as follows:
 
     {
-      fields: [ {id: .., label: .., ...}, {id: ..., 
+      fields: [ {id: .., ...}, {id: ..., 
       records: [ { record }, { record }, ... ]
       ... // more attributes we do not care about
     }
 
   Nulls are converted to empty fields and integers or floats are converted to
   non-quoted numbers.
+
+  You may optionally specify a `label` inside each field so that the serialized data will use it as the column heading instead of the `id`.
 
 * `dialect`: dialect options for serializing the CSV file as per [CSV Dialect
   Description Format][csvddf]
