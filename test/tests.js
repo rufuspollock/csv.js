@@ -91,7 +91,7 @@ describe("Backend Local CSV", function() {
 
   it("serialize - Object", function() {
     var indata = {
-      fields: [ {id: 'name'}, {id: 'number'}],
+      fields: [ {id: 'name'}, {id: 'number', label: 'Number'}],
       records: [
         {name: 'Jones, Jay', number: 10},
         {name: 'Xyz "ABC" O\'Brien', number: '11:35' },
@@ -100,7 +100,7 @@ describe("Backend Local CSV", function() {
     };
 
     var array = CSV.serialize(indata);
-    var exp = 'name,number\n' +
+    var exp = 'name,Number\n' +
     '"Jones, Jay",10\n' +
     '"Xyz ""ABC"" O\'Brien",11:35\n' +
     '"Other, AN",12:35\n';
